@@ -1,0 +1,6 @@
+{
+  "name": "Live Exam Tracker",
+  "description": "Real-time exam tracking system with detailed live graphs for teachers to monitor student progress in real-time.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
