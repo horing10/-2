@@ -11,8 +11,23 @@ interface CreateJoinScreenProps {
 }
 
 export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, error }: CreateJoinScreenProps) {
+  // Determine if URL contains join/room/code query
+  const [studentMode, setStudentMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return !!(params.get('join') || params.get('room') || params.get('code'));
+    }
+    return false;
+  });
+
   // Join Tab states
-  const [joinCode, setJoinCode] = useState('');
+  const [joinCode, setJoinCode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('join') || params.get('room') || params.get('code') || '').toUpperCase().trim();
+    }
+    return '';
+  });
   const [studentName, setStudentName] = useState('');
 
   // Create Tab states
@@ -187,38 +202,37 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
         </div>
       )}
 
-      <div className="grid md:grid-cols-12 gap-8 items-start">
-        {/* Left Side: Student Join (4 columns or adapted) */}
-        <div className="md:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 rounded-lg bg-blue-50 text-blue-600">
+      {studentMode ? (
+        <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-md">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-150">
+            <div className="p-3 rounded-xl bg-blue-105 text-blue-700">
               <User className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">학생 시험 참가</h2>
-              <p className="text-xs text-slate-500 font-medium font-sans">선생님이 공유해 준 코드로 참가</p>
+              <h2 className="text-xl font-black text-slate-900 leading-tight">학생 시험 참가</h2>
+              <p className="text-xs text-slate-500 font-medium">선생님이 개설한 실시간 온라인 방으로 참여합니다</p>
             </div>
           </div>
 
-          <form onSubmit={handleJoinSubmit} className="space-y-4">
+          <form onSubmit={handleJoinSubmit} className="space-y-5">
             <div>
-              <label htmlFor="joinCode" className="block text-xs font-semibold text-slate-550 uppercase tracking-wider mb-1.5 font-sans">
-                시험 룸 코드
+              <label htmlFor="joinCode" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                시험 입장코드 (ROOM CODE)
               </label>
               <input
                 id="joinCode"
                 type="text"
-                placeholder="예: DEMO 또는 5자리 코드"
+                placeholder="예: ABCD"
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
                 required
-                className="w-full text-lg px-4 py-3 bg-slate-50 border border-slate-205 focus:border-blue-500 focus:bg-white focus:outline-none rounded-xl text-slate-900 tracking-wider uppercase placeholder:lowercase transition-all"
+                className="w-full text-center text-2xl font-mono font-black py-3 bg-slate-50 border border-slate-250 focus:border-blue-500 focus:bg-white focus:outline-none rounded-xl text-slate-900 tracking-wider uppercase transition-all"
               />
             </div>
 
             <div>
-              <label htmlFor="studentName" className="block text-xs font-semibold text-slate-550 uppercase tracking-wider mb-1.5 font-sans">
-                학생 실명
+              <label htmlFor="studentName" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                학생 실명 입력
               </label>
               <input
                 id="studentName"
@@ -228,7 +242,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
                 onChange={(e) => setStudentName(e.target.value)}
                 required
                 maxLength={10}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-205 focus:border-blue-500 focus:bg-white focus:outline-none rounded-xl text-slate-900 transition-all"
+                className="w-full text-center text-lg font-bold py-3 bg-slate-50 border border-slate-250 focus:border-blue-500 focus:bg-white focus:outline-none rounded-xl text-slate-900 transition-all"
               />
             </div>
 
@@ -236,15 +250,15 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
               id="joinButton"
               type="submit"
               disabled={loading}
-              className="w-full mt-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition duration-150 shadow-sm cursor-pointer disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-xs cursor-pointer disabled:opacity-50 text-base"
             >
-              {loading ? '검증 중...' : '시험 시작하기'}
+              {loading ? '검증 및 입장 중...' : '국악 실시간 시험 입장하기'}
               <Play className="w-4 h-4 fill-current text-white" />
             </button>
           </form>
 
           {/* Quick Demo Assist */}
-          <div className="mt-8 pt-6 border-t border-slate-100">
+          <div className="mt-6 pt-5 border-t border-slate-100">
             <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">즉시 보기 / 예시 채널</h4>
             <div 
               onClick={() => {
@@ -263,16 +277,26 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
               <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-blue-500 transition" />
             </div>
           </div>
-        </div>
 
-        {/* Right Side: Teacher Room Creation (7 columns) */}
-        <div className="md:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 rounded-lg bg-blue-50 text-blue-600">
+          {/* Toggle link */}
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+            <button
+              type="button"
+              onClick={() => setStudentMode(false)}
+              className="text-xs text-slate-500 hover:text-blue-600 transition font-medium cursor-pointer"
+            >
+              선생님용 관리자이신가요? <span className="underline font-bold text-blue-600">대시보드 개설 화면으로 전환</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-lg">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">선생님 출제 및 대시보드 개설</h2>
+              <h2 className="text-2xl font-black text-slate-900 leading-tight">선생님 출제 및 대시보드 개설</h2>
               <p className="text-xs text-slate-500 font-medium font-sans">실시간 응시 룸을 개설하여 즉시 실시간 그래프 모니터링을 개시합니다.</p>
             </div>
           </div>
@@ -310,7 +334,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
             </div>
 
             {/* National Gukak Quiz Tracking Integration (외부 사이트 연동) */}
-            <div className="bg-gradient-to-br from-slate-50 to-blue-50/40 border border-blue-100 rounded-2xl p-4 shadow-3xs">
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50/40 border border-blue-105 rounded-2xl p-4 shadow-3xs">
               <div className="flex items-center gap-2 mb-2">
                 <Globe className="w-4 h-4 text-blue-600 animate-pulse" />
                 <span className="text-xs font-bold text-slate-800 font-sans">
@@ -369,7 +393,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
 
             {/* Question Source Selection */}
             <div>
-              <span className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3 font-sans">
+              <span className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 font-sans">
                 문제가 포함된 문제지 소스 선택
               </span>
               <div className="grid grid-cols-2 gap-3 mb-3">
@@ -421,7 +445,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
                   </div>
                 </div>
               ) : (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4 max-h-96 overflow-y-auto">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4 max-h-96 overflow-y-auto w-full">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                     <span className="text-xs font-bold text-slate-700 font-sans">출제 문항 목록 ({customQuestions.length})</span>
                     <button
@@ -522,7 +546,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
                       : 'border-slate-205 hover:bg-slate-100'
                   }`}
                 >
-                  <div className="font-bold text-slate-900">선생님 주도(Teacher-led) 진행</div>
+                  <div className="font-bold text-slate-905">선생님 주도(Teacher-led) 진행</div>
                   <div className="text-slate-500 text-[10px] mt-0.5 leading-relaxed font-sans">선생님이 화면에서 다음 문항 기습 변경 시 다 같이 이동하여 문제를 풉니다.</div>
                 </button>
               </div>
@@ -532,14 +556,25 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
               id="createRoomButton"
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-150 shadow-sm cursor-pointer disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition duration-150 shadow-sm cursor-pointer disabled:opacity-50 text-base"
             >
               <Settings className="w-4 h-4 text-white" />
-              {loading ? '인증 생성중...' : '대시보드 개설 및 룸 활성화'}
+              {loading ? '대시보드 인증 및 방 개설 활성화 중...' : '대시보드 개설 및 실시간 방 시작'}
             </button>
           </form>
+
+          {/* Student direct manual switch toggle at bottom */}
+          <div className="mt-8 pt-5 border-t border-slate-105 text-center">
+            <button
+              type="button"
+              onClick={() => setStudentMode(true)}
+              className="text-xs text-slate-500 hover:text-blue-600 transition font-medium cursor-pointer"
+            >
+              학생 평가 참가자이신가요? <span className="underline font-bold text-blue-600">입장 코드를 직접 입력해 접속</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

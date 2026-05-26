@@ -670,6 +670,91 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
         {/* Right: Real-time Leaderboard & Bot simulation controls (4 columns) */}
         <div className="lg:col-span-4 space-y-6">
           
+          {/* Section: Live Student Invitation & QR Code */}
+          <section className="bg-white border-2 border-blue-100 rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+              <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 font-sans">실시간 학생 참가 초대</h3>
+                <p className="text-[10px] text-slate-400 font-sans">국악 사이트 연동 QR 코드 및 직접 입장</p>
+              </div>
+            </div>
+
+            {/* Room Code Showcase */}
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1 font-sans">시험 입장 코드 (ROOM CODE)</span>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-3xl font-mono font-black tracking-widest text-blue-700">{roomId}</span>
+                <button
+                  type="button"
+                  onClick={copyRoomCodeToClipboard}
+                  className="p-1.5 bg-white hover:bg-slate-100 rounded-xl border border-slate-200 text-slate-600 cursor-pointer shadow-3xs transition"
+                  title="코드 복사"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+              {copied && <span className="text-[10px] text-emerald-600 font-bold block mt-1.5 animate-bounce">복사 완료!</span>}
+            </div>
+
+            {/* QR Connection */}
+            <div className="flex flex-col items-center justify-center py-2">
+              <span className="text-[10px] font-extrabold text-slate-400 mb-2 uppercase tracking-wide font-sans">학생용 모바일/태블릿 QR 스캔</span>
+              <div className="relative p-2.5 bg-white border border-slate-200 rounded-2xl shadow-3xs flex items-center justify-center w-44 h-44">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`${window.location.origin}/?join=${roomId}`)}`}
+                  alt="Student Join QR Code"
+                  referrerPolicy="no-referrer"
+                  className="w-[155px] h-[155px] select-none rounded-lg"
+                />
+              </div>
+              <p className="text-[10.5px] text-slate-500 mt-3 text-center leading-relaxed font-sans">
+                카메라로 스캔하면 <strong>실명 입력창</strong>으로<br />
+                대기시간 없이 즉시 다이렉트 연동 연결됩니다.
+              </p>
+            </div>
+
+            {/* URL Invite Link */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block font-sans">직접 초대 원격 주소 (URL)</span>
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  readOnly
+                  value={`${window.location.origin}/?join=${roomId}`}
+                  className="flex-1 text-[10px] px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-600 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    try {
+                      const joinUrl = `${window.location.origin}/?join=${roomId}`;
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(joinUrl);
+                      } else {
+                        const textArea = document.createElement("textarea");
+                        textArea.value = joinUrl;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(textArea);
+                      }
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    } catch (err) {
+                      console.warn(err);
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold py-2 px-3 rounded-xl transition shrink-0 cursor-pointer"
+                >
+                  링크 복사
+                </button>
+              </div>
+            </div>
+          </section>
+
           {/* Section A: Simulator Control Room */}
           <section className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
             <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
