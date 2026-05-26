@@ -49,9 +49,23 @@ export default function App() {
         }),
       });
 
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '시험 방을 생성하지 못했습니다.');
+        let errorMsg = '시험 방을 생성하지 못했습니다.';
+        if (isJson) {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } else {
+          const textMsg = await response.text();
+          errorMsg = `서버 측 응답 오류 (${response.status} ${response.statusText}): ${textMsg.substring(0, 80)}`;
+        }
+        throw new Error(errorMsg);
+      }
+
+      if (!isJson) {
+        throw new Error('서버로부터 올바른 JSON 응답을 받지 못했습니다.');
       }
 
       const rawRoom = await response.json();
@@ -59,6 +73,7 @@ export default function App() {
       setPasscode(rawRoom.teacherPasscode);
       setScreen('teacher');
     } catch (err: any) {
+      console.error('[CreateRoomError]', err);
       setError(err.message || '네트워크 장애가 지속되고 있습니다.');
     } finally {
       setLoading(false);
@@ -76,9 +91,23 @@ export default function App() {
         body: JSON.stringify({ name }),
       });
 
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '접속 시도가 무효 처리되었습니다.');
+        let errorMsg = '접속 시도가 무효 처리되었습니다.';
+        if (isJson) {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } else {
+          const textMsg = await response.text();
+          errorMsg = `서버 측 응답 오류 (${response.status} ${response.statusText}): ${textMsg.substring(0, 80)}`;
+        }
+        throw new Error(errorMsg);
+      }
+
+      if (!isJson) {
+        throw new Error('서버로부터 올바른 JSON 응답을 받지 못했습니다.');
       }
 
       const result = await response.json();
@@ -86,6 +115,7 @@ export default function App() {
       setParticipantId(result.participantId);
       setScreen('student');
     } catch (err: any) {
+      console.error('[JoinRoomError]', err);
       setError(err.message || '방을 찾을 수 없거나 코드 번호가 잘못되었습니다.');
     } finally {
       setLoading(false);
