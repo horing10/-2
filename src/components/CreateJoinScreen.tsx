@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { presetQuizzes } from '../presets';
 import { Question } from '../types';
 import { Play, User, Users, BookOpen, Settings, AlertCircle, Plus, Trash2, ArrowRight, Globe, Loader2, Sparkles } from 'lucide-react';
+import { getApiUrl } from '../utils/api';
 
 interface CreateJoinScreenProps {
   onJoinRoom: (roomId: string, name: string) => void;
@@ -51,7 +52,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
       let networkFailed = false;
 
       try {
-        const res = await fetch('/api/rooms/import-gukak', {
+        const res = await fetch(getApiUrl('/api/rooms/import-gukak'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: gukakUrl })
@@ -276,17 +277,6 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
               </div>
               <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-blue-500 transition" />
             </div>
-          </div>
-
-          {/* Toggle link */}
-          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-            <button
-              type="button"
-              onClick={() => setStudentMode(false)}
-              className="text-xs text-slate-500 hover:text-blue-600 transition font-medium cursor-pointer"
-            >
-              선생님용 관리자이신가요? <span className="underline font-bold text-blue-600">대시보드 개설 화면으로 전환</span>
-            </button>
           </div>
         </div>
       ) : (
@@ -562,17 +552,6 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
               {loading ? '대시보드 인증 및 방 개설 활성화 중...' : '대시보드 개설 및 실시간 방 시작'}
             </button>
           </form>
-
-          {/* Student direct manual switch toggle at bottom */}
-          <div className="mt-8 pt-5 border-t border-slate-105 text-center">
-            <button
-              type="button"
-              onClick={() => setStudentMode(true)}
-              className="text-xs text-slate-500 hover:text-blue-600 transition font-medium cursor-pointer"
-            >
-              학생 평가 참가자이신가요? <span className="underline font-bold text-blue-600">입장 코드를 직접 입력해 접속</span>
-            </button>
-          </div>
         </div>
       )}
     </div>

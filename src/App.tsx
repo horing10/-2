@@ -9,6 +9,7 @@ import TeacherDashboard from './components/TeacherDashboard';
 import StudentModule from './components/StudentModule';
 import { Question } from './types';
 import { HelpCircle, RefreshCw, Sparkles, LogOut } from 'lucide-react';
+import { getApiUrl } from './utils/api';
 
 type ScreenStatus = 'lobby' | 'teacher' | 'student';
 
@@ -37,7 +38,7 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/rooms', {
+      const response = await fetch(getApiUrl('/api/rooms'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,7 +70,7 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/rooms/${code}/join`, {
+      const response = await fetch(getApiUrl(`/api/rooms/${code}/join`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),

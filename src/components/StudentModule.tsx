@@ -5,6 +5,7 @@ import {
   CheckCircle2, AlertTriangle, AlertCircle, Clock, Award, 
   HelpCircle, ChevronRight, BookOpen, LogOut, ArrowRight, CornerDownRight 
 } from 'lucide-react';
+import { getApiUrl } from '../utils/api';
 
 interface StudentModuleProps {
   roomId: string;
@@ -23,7 +24,7 @@ export default function StudentModule({ roomId, participantId, onExit }: Student
   // Poll room data
   const fetchStudentData = async () => {
     try {
-      const res = await fetch(`/api/rooms/${roomId}`);
+      const res = await fetch(getApiUrl(`/api/rooms/${roomId}`));
       if (!res.ok) {
         throw new Error('룸 데이터를 받아오는 중 오류가 발생했습니다.');
       }
@@ -71,7 +72,7 @@ export default function StudentModule({ roomId, participantId, onExit }: Student
 
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/rooms/${roomId}/submit`, {
+      const res = await fetch(getApiUrl(`/api/rooms/${roomId}/submit`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

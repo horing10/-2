@@ -6,6 +6,7 @@ import {
   ChevronRight, AlertCircle, Trash2, Cpu, HelpCircle, ArrowLeft, Send,
   Globe, ExternalLink
 } from 'lucide-react';
+import { getApiUrl } from '../utils/api';
 
 interface TeacherDashboardProps {
   roomId: string;
@@ -24,7 +25,7 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
   // Poll room data from backend
   const fetchRoomData = async () => {
     try {
-      const res = await fetch(`/api/rooms/${roomId}?passcode=${passcode}`, {
+      const res = await fetch(getApiUrl(`/api/rooms/${roomId}?passcode=${passcode}`), {
         headers: {
           'x-teacher-passcode': passcode,
         }
@@ -59,7 +60,7 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
   // Handle Room State Update
   const updateRoomStatus = async (status: 'waiting' | 'active' | 'paused' | 'completed') => {
     try {
-      const res = await fetch(`/api/rooms/${roomId}/status`, {
+      const res = await fetch(getApiUrl(`/api/rooms/${roomId}/status`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +79,7 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
   // Switch Teacher Led Question Mode Index
   const updateQuestionIndex = async (index: number) => {
     try {
-      const res = await fetch(`/api/rooms/${roomId}/question`, {
+      const res = await fetch(getApiUrl(`/api/rooms/${roomId}/question`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +98,7 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
   // Toggle Bot Simulation
   const toggleBots = async (action: 'start' | 'stop') => {
     try {
-      const res = await fetch(`/api/rooms/${roomId}/bots`, {
+      const res = await fetch(getApiUrl(`/api/rooms/${roomId}/bots`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,7 +131,7 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
       return;
     }
     try {
-      const res = await fetch(`/api/rooms/${roomId}/reset`, {
+      const res = await fetch(getApiUrl(`/api/rooms/${roomId}/reset`), {
         method: 'DELETE',
         headers: {
           'x-teacher-passcode': passcode,
