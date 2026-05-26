@@ -452,28 +452,39 @@ app.post('/api/rooms/import-gukak', async (req, res) => {
   const { url = 'https://rust-five-34.vercel.app/' } = req.body;
   
   try {
-    const targetUrl = url.trim();
-    const response = await fetch(targetUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let targetUrl = url.trim();
+    if (!targetUrl) {
+      targetUrl = 'https://rust-five-34.vercel.app/';
     }
-    const html = await response.text();
     
-    // Scan for index asset bundle
-    const assetMatches = html.match(/\/assets\/index-[a-zA-Z0-9_-]+\.js/);
-    let jsUrl = '';
-    if (assetMatches) {
-      jsUrl = new URL(assetMatches[0], targetUrl).toString();
-    } else {
-      const genericScriptMatch = html.match(/src="([^"]+\.js)"/);
-      if (genericScriptMatch) {
-         jsUrl = new URL(genericScriptMatch[1], targetUrl).toString();
-      }
+    // Auto-complete missing protocol
+    if (!/^https?:\/\//i.test(targetUrl)) {
+      targetUrl = 'https://' + targetUrl;
     }
 
     let parsedQuestions: any[] = [];
-    if (jsUrl) {
-      try {
+    let loadMethod = 'network';
+
+    try {
+      const response = await fetch(targetUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const html = await response.text();
+      
+      // Scan for index asset bundle (case insensitive and supports optional leading slash)
+      const assetMatches = html.match(/\/?assets\/index-[a-zA-Z0-9_-]+\.js/i);
+      let jsUrl = '';
+      if (assetMatches) {
+        jsUrl = new URL(assetMatches[0], targetUrl).toString();
+      } else {
+        const genericScriptMatch = html.match(/src=["']([^"']+\.js)["']/i);
+        if (genericScriptMatch) {
+          jsUrl = new URL(genericScriptMatch[1], targetUrl).toString();
+        }
+      }
+
+      if (jsUrl) {
         const jsResponse = await fetch(jsUrl);
         if (jsResponse.ok) {
           const jsText = await jsResponse.text();
@@ -534,13 +545,14 @@ app.post('/api/rooms/import-gukak', async (req, res) => {
             }
           }
         }
-      } catch (e) {
-        console.error("Error scraping JS bundler file:", e);
       }
+    } catch (err: any) {
+      console.warn("External fetch failed, switching to local updated cache fallback:", err.message);
     }
     
     // Falling back to the official complete set of Gukak questions
     if (parsedQuestions.length === 0) {
+      loadMethod = 'cache';
       try {
         const defaultPath = path.join(process.cwd(), 'gukak_questions_default.json');
         if (fs.existsSync(defaultPath)) {
@@ -569,7 +581,8 @@ app.post('/api/rooms/import-gukak', async (req, res) => {
     res.json({
       title: '국악(國樂) 교육용 실시간 퀴즈 평가',
       questions: parsedQuestions,
-      url: targetUrl
+      url: targetUrl,
+      loadMethod
     });
   } catch (err: any) {
     res.status(500).json({ error: `국악 퀴즈 파싱 로더 가동 중 에러: ${err.message}` });
