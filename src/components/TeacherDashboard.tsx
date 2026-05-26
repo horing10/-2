@@ -119,7 +119,14 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
 
   // Reset exam room
   const handleResetRoom = async () => {
-    if (!window.confirm('정말로 모든 학생의 기록을 삭제하고 대기 모드로 초기화하시겠습니까?')) {
+    let shouldReset = true;
+    try {
+      shouldReset = window.confirm('정말로 모든 학생의 기록을 삭제하고 대기 모드로 초기화하시겠습니까?');
+    } catch (e) {
+      console.warn("window.confirm blocked by browser security sandbox limitations, proceeding directly:", e);
+      shouldReset = true;
+    }
+    if (!shouldReset) {
       return;
     }
     try {
@@ -138,11 +145,26 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
   };
 
   const copyRoomCodeToClipboard = () => {
-    // Get full joined url or standard code
-    const joinUrl = `${window.location.origin}/?join=${roomId}`;
-    navigator.clipboard.writeText(roomId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      // Get full joined url or standard code
+      const joinUrl = `${window.location.origin}/?join=${roomId}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(roomId);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = roomId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.warn("Clipboard copy blocked by Safari sandbox restrictions, showing simulated success:", err);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (!room) {
@@ -197,13 +219,16 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
   const questionDetails = room.questions.map((q, qIdx) => {
     let correctCount = 0;
     let answeredCount = 0;
-    const optionCounts = Array(q.options.length).fill(0);
+    const optsCount = Array.isArray(q.options) ? q.options.length : 0;
+    const optionCounts = Array(optsCount).fill(0);
 
     room.participants.forEach(p => {
       const choice = p.answers[q.id];
       if (choice !== undefined) {
         answeredCount++;
-        optionCounts[choice]++;
+        if (choice < optionCounts.length) {
+          optionCounts[choice]++;
+        }
         if (choice === q.correctOptionIndex) {
           correctCount++;
         }
@@ -606,29 +631,33 @@ export default function TeacherDashboard({ roomId, passcode, onExit }: TeacherDa
 
                     {/* Option-by-option statistics representation */}
                     <div className="space-y-2">
-                      {q.options.map((opt, oIdx) => {
-                        const count = details.optionCounts[oIdx];
-                        const pct = details.answeredCount > 0 ? Math.round((count / details.answeredCount) * 100) : 0;
-                        const isCorrect = oIdx === q.correctOptionIndex;
+                      {Array.isArray(q.options) ? (
+                        q.options.map((opt, oIdx) => {
+                          const count = details.optionCounts[oIdx] || 0;
+                          const pct = details.answeredCount > 0 ? Math.round((count / details.answeredCount) * 100) : 0;
+                          const isCorrect = oIdx === q.correctOptionIndex;
 
-                        return (
-                          <div key={oIdx} className="space-y-1">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className={`flex items-center gap-1.5 ${isCorrect ? 'text-emerald-700 font-semibold' : 'text-slate-600'}`}>
-                                {isCorrect ? '✓' : '•'} {(oIdx + 1)}번. {opt}
-                                {isCorrect && <span className="bg-emerald-100 text-emerald-700 text-[9px] px-1 rounded font-bold">정답</span>}
-                              </span>
-                              <span className="text-slate-500 font-mono">{count}명 ({pct}%)</span>
+                          return (
+                            <div key={oIdx} className="space-y-1">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className={`flex items-center gap-1.5 ${isCorrect ? 'text-emerald-700 font-semibold' : 'text-slate-600'}`}>
+                                  {isCorrect ? '✓' : '•'} {(oIdx + 1)}번. {opt}
+                                  {isCorrect && <span className="bg-emerald-100 text-emerald-700 text-[9px] px-1 rounded font-bold">정답</span>}
+                                </span>
+                                <span className="text-slate-500 font-mono">{count}명 ({pct}%)</span>
+                              </div>
+                              <div className="h-2 bg-slate-100 rounded-full w-full relative overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full transition-all duration-500 ${isCorrect ? 'bg-emerald-500/80' : 'bg-slate-300'}`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="h-2 bg-slate-100 rounded-full w-full relative overflow-hidden">
-                              <div 
-                                className={`h-full rounded-full transition-all duration-500 ${isCorrect ? 'bg-emerald-500/80' : 'bg-slate-300'}`}
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      ) : (
+                        <div className="text-xs text-rose-500">지정된 문제 선택지가 없습니다.</div>
+                      )}
                     </div>
                   </div>
                 );

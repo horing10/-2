@@ -17,7 +17,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
 
   // Create Tab states
   const [quizTitle, setQuizTitle] = useState('');
-  const [selectedPresetId, setSelectedPresetId] = useState(presetQuizzes[0].id);
+  const [selectedPresetId, setSelectedPresetId] = useState(presetQuizzes[0]?.id || 'ai-cs-basics');
   const [isTeacherLed, setIsTeacherLed] = useState(false);
   const [passcode, setPasscode] = useState('1234');
 
@@ -462,24 +462,28 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
 
                       {/* Options */}
                       <div className="grid grid-cols-2 gap-2">
-                        {q.options.map((opt, oIdx) => (
-                          <div key={oIdx} className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded border border-slate-100">
-                            <input
-                              type="radio"
-                              name={`correct-ans-${q.id}`}
-                              checked={q.correctOptionIndex === oIdx}
-                              onChange={() => handleUpdateQuestion(qIdx, 'correctOptionIndex', oIdx)}
-                              className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
-                              title="정답 체크"
-                            />
-                            <input
-                              type="text"
-                              value={opt}
-                              onChange={(e) => handleUpdateOption(qIdx, oIdx, e.target.value)}
-                              className="w-full px-1 py-0.5 bg-transparent border-b border-transparent focus:border-blue-300 text-xs text-slate-700 focus:outline-none"
-                            />
-                          </div>
-                        ))}
+                        {Array.isArray(q.options) ? (
+                          q.options.map((opt, oIdx) => (
+                            <div key={oIdx} className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded border border-slate-100">
+                              <input
+                                type="radio"
+                                name={`correct-ans-${q.id}`}
+                                checked={q.correctOptionIndex === oIdx}
+                                onChange={() => handleUpdateQuestion(qIdx, 'correctOptionIndex', oIdx)}
+                                className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                                title="정답 체크"
+                              />
+                              <input
+                                type="text"
+                                value={opt || ''}
+                                onChange={(e) => handleUpdateOption(qIdx, oIdx, e.target.value)}
+                                className="w-full px-1 py-0.5 bg-transparent border-b border-transparent focus:border-blue-300 text-xs text-slate-700 focus:outline-none"
+                              />
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs text-rose-500 col-span-2">선택지 데이터를 불러올 수 없습니다.</div>
+                        )}
                       </div>
 
                       <div className="flex justify-end gap-3 text-xs text-slate-500 pt-1 font-sans">

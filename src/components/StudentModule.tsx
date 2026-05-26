@@ -222,27 +222,28 @@ export default function StudentModule({ roomId, participantId, onExit }: Student
 
             <form onSubmit={handleAnswerSubmit} className="space-y-3 font-sans">
               <div className="grid gap-3">
-                {currentQ.options.map((optionText, oIdx) => {
-                  const isChecked = selectedOption === oIdx;
-                  const isSubmittedAns = studentChoiceIndex === oIdx;
+                {Array.isArray(currentQ.options) ? (
+                  currentQ.options.map((optionText, oIdx) => {
+                    const isChecked = selectedOption === oIdx;
+                    const isSubmittedAns = studentChoiceIndex === oIdx;
 
-                  // Disabled options if already answered
-                  const disabled = submitting || hasAnsweredCurrent;
+                    // Disabled options if already answered
+                    const disabled = submitting || hasAnsweredCurrent;
 
-                  return (
-                    <button
-                      key={oIdx}
-                      type="button"
-                      disabled={disabled}
-                      onClick={() => setSelectedOption(oIdx)}
-                      className={`w-full min-h-11 px-4 py-3 text-left text-sm rounded-xl border flex items-center justify-between transition group pointer-events-auto cursor-pointer ${
-                        isChecked 
-                          ? 'border-blue-600 bg-blue-50 text-blue-900 font-semibold' 
-                          : isSubmittedAns
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold shadow-2xs'
-                            : 'border-slate-205 bg-slate-50 hover:bg-slate-100 text-slate-800'
-                      } ${disabled ? 'opacity-85' : ''}`}
-                    >
+                    return (
+                      <button
+                        key={oIdx}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => setSelectedOption(oIdx)}
+                        className={`w-full min-h-11 px-4 py-3 text-left text-sm rounded-xl border flex items-center justify-between transition group pointer-events-auto cursor-pointer ${
+                          isChecked 
+                            ? 'border-blue-600 bg-blue-50 text-blue-900 font-semibold' 
+                            : isSubmittedAns
+                              ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold shadow-2xs'
+                              : 'border-slate-205 bg-slate-50 hover:bg-slate-100 text-slate-800'
+                        } ${disabled ? 'opacity-85' : ''}`}
+                      >
                       <div className="flex items-center gap-3">
                         <span className={`w-6 h-6 rounded-full flex items-center justify-center border text-xs font-bold ${
                           isChecked 
@@ -259,7 +260,10 @@ export default function StudentModule({ roomId, participantId, onExit }: Student
                       {isSubmittedAns && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
                     </button>
                   );
-                })}
+                })
+              ) : (
+                <div className="text-xs text-rose-500">선택지 데이터를 불러오는 중 오류가 발생했습니다.</div>
+              )}
               </div>
 
               {/* Action buttons */}
