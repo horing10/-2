@@ -67,7 +67,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
 
       // If network import failed, do a client-side seamless recovery with embedded Gukak questions
       if (networkFailed || !data || !Array.isArray(data.questions) || data.questions.length === 0) {
-        const gukakPreset = presetQuizzes.find(p => p.id === 'gukak-official-set');
+        const gukakPreset = presetQuizzes.find(p => p && p.id === 'gukak-official-set');
         if (gukakPreset) {
           setCustomQuestions(gukakPreset.questions);
           setQuizTitle(gukakPreset.title || '국악 퀴즈 실시간 동기화 평가');
@@ -150,7 +150,7 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
       finalQuestions = customQuestions;
       if (!finalTitle) finalTitle = '선생님의 실시간 커스텀 시험';
     } else {
-      const preset = presetQuizzes.find(p => p.id === selectedPresetId);
+      const preset = presetQuizzes.find(p => p && p.id === selectedPresetId);
       if (preset) {
         finalQuestions = preset.questions;
         if (!finalTitle) finalTitle = preset.title;
@@ -409,15 +409,15 @@ export default function CreateJoinScreen({ onJoinRoom, onCreateRoom, loading, er
                     onChange={(e) => setSelectedPresetId(e.target.value)}
                     className="w-full p-2.5 bg-white border border-slate-205 focus:border-blue-500 focus:outline-none rounded-lg text-slate-800 text-sm"
                   >
-                    {presetQuizzes.map(quiz => (
+                    {presetQuizzes.filter(Boolean).map(quiz => (
                       <option key={quiz.id} value={quiz.id}>
-                        {quiz.title} ({quiz.questions.length}문항)
+                        {quiz.title} ({quiz.questions?.length || 0}문항)
                       </option>
                     ))}
                   </select>
                   <div className="text-xs text-slate-500 leading-relaxed bg-white p-3 rounded-lg border border-slate-100 font-sans">
                     <span className="font-semibold text-slate-700 font-sans">시험 정보:</span>{' '}
-                    {presetQuizzes.find(p => p.id === selectedPresetId)?.description}
+                    {presetQuizzes.find(p => p && p.id === selectedPresetId)?.description}
                   </div>
                 </div>
               ) : (

@@ -113,7 +113,6 @@ export const presetQuizzes: PresetQuiz[] = [
       },
     ],
   },
-,
   {
     id: "gukak-official-set",
     title: "정통 국악(國樂) 교육 및 실시간 기출 문제집",
